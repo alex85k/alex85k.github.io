@@ -130,9 +130,9 @@ class MatrixTable {
             if (this.cellToMatrixSync) this.v[i][j]=Number(val);
         }
         c.setBackColor(color1);
-        console.log("Waiting ",c.node());
+        //console.log("Waiting ",c.node());
         await this.wait(c);
-        console.log(c.node(),"OK");
+        //console.log(c.node(),"OK");
         if (color2) {
             c.setBackColor(color2);
             await this.wait(c);

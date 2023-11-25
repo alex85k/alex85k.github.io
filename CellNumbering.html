@@ -8,9 +8,7 @@
     <script src="transitions.js"></script>
     <script src="varstable.js"></script>
 <style>
-    #container {
-    }
-
+  
     table {
         text-align: center;
         border-collapse: collapse;
@@ -56,7 +54,7 @@
     </div>
     
     <script>
-        var m=null;
+        var m=null, vs=null, A=null;
         document.addEventListener("DOMContentLoaded", async ()=>{
             Transitions.init(0.1);
             
@@ -72,9 +70,8 @@
             
 
             
-            //const vs = new VariableTable({A:1,B:2,D:8,AA:0},"#vars1");
+            vs = new VariableTable({i:'',j:'',k:''},"#vars1");
             //vs.updateSome({"A":100});
-
             //vs.updateSome({"A":8,"B":50});
             //vs.changeSelection("yellow","white",{"A":1,"B":5});
 
@@ -121,63 +118,81 @@
 
 
         let num=0;
-        let A;
         async function demoNumbering() {
             num=0;
-            Transitions.D=0.1;
+            Transitions.D=0.01;
             for (let i=0;i<m.n;i++) {
                 for (let j=0;j<m.m;j++) {
-                    console.log(i,j);
+                    //console.log(i,j);
+                    vs.updateSome({i:i, j:j});
                     if (m.v[i][j]==1) {
                         await m.setAnimated(i,j,num,"yellow",null);
                         num++;
+                        vs.updateSome({i, j, k:num});
                     } else {
                         await m.setAnimated(i,j,-1,"lightgrey",null);
+                        vs.updateSome({i,j});
                     }
                 }
             }
             A = new MatrixTable(num,num,"#tab2");
             A.updateAll();
+            vs.updateAll({i:'?',j:'?', 'num[i,j]': '?', 'Слева':'','Справа':'','Сверху':'','Снизу':''});
+        
         }
         
         
 
-        let pausePromise=null;
+        let pausePromise=()=>{};
         async function pause() {
             return new Promise((rs,rj)=>{
                 pausePromise=rs;
             });
         }
-
+            
         let statusA="no";
         async function demoMatrixA() {
             if (statusA == "working") {pausePromise(); return;}
             if (statusA == "ready") { A.clear(); }
             statusA = "working";
             
-            Transitions.D=0.5;
+            Transitions.D=1;
             num=0;
             for (let i=0;i<m.n;i++) {
                 for (let j=0;j<m.m;j++) {
                     const c = m.v[i][j];
+                    vs.updateSome({i,j});
+                    
                     if (c<0) continue;
                     console.log(i,j);
                     m.selectMulti([[i,j],[i-1,j],[i+1,j],[i,j-1],[i,j+1]]);
-                    await Promise.all([A.setAnimated(c,c,-4,"red"), m.changeSelection("red")]);
+                    await Promise.all([
+                        A.setAnimated(c,c,-4,"red"), 
+                        m.changeSelection("red"),
+                        //vs.changeSelection("wheat", null, {'num[i,j]': c})
+                        vs.changeSelection("red", null,{'num[i,j]': c, 'Слева': m.v[i]?.[j-1]||'?',
+                            'Справа':m.v[i]?.[j+1]||'?','Сверху':m.v[i-1]?.[j]||'?',
+                            'Снизу':m.v[i+1]?.[j]||'?'})
+                        ]);
                     //alert("red");
                     //await m.setAnimated(i,j,null,"red");
+
                     let res1=[[i,j]],  res2=[[c,c]];
                     if (j>0) {
                         const l = m.v[i][j-1];
                         if (l>=0) {
                             await Promise.all([
                                 m.setAnimated(i,j-1,null,"limegreen"),
-                                A.setAnimated(c,l,1,"limegreen")]
+                                A.setAnimated(c,l,1,"limegreen")],
+                                vs.changeSelection("limegreen","restore", {'Слева':l})
                             );
                             res1.push([i,j-1]);
                             res2.push([c,l]);
                         } else {
-                            await m.setAnimated(i,j-1,null,"lightgrey");
+                            await Promise.all([
+                                m.setAnimated(i,j-1,null,"lightgrey"),
+                                vs.changeSelection("lightgrey","restore", {'Слева':'-l'})
+                            ]);
                         }
                     }
                     if (j+1<m.m) {
@@ -185,11 +200,16 @@
                         if (r>=0) {
                             await Promise.all([
                                 m.setAnimated(i,j+1,null,"orange"),
-                                A.setAnimated(c,r,1,"orange")]);
+                                A.setAnimated(c,r,1,"orange"),
+                                vs.changeSelection("orange","restore", {'Справа':r})
+                            ]);
                             res1.push([i,j+1]);
                             res2.push([c,r]);
                         } else {
-                            await m.setAnimated(i,j+1,null,"lightgrey");
+                            await Promise.all([
+                                m.setAnimated(i,j+1,null,"lightgrey"),
+                                vs.changeSelection("lightgrey","restore", {'Справа':'-l'})
+                            ]);
                         }
                     }
 
@@ -198,11 +218,16 @@
                         if (u>=0) {
                             await Promise.all([
                                 m.setAnimated(i-1,j,null,"lightblue"),
-                                A.setAnimated(c,u,1,"lightblue")]);
+                                A.setAnimated(c,u,1,"lightblue"),
+                                vs.changeSelection("lightblue","restore", {'Сверху':u})
+                            ]);
                             res1.push([i-1,j]);
                             res2.push([c,u]);
                         } else {
-                            await m.setAnimated(i-1,j,null,"lightgrey");
+                            await Promise.all([
+                                m.setAnimated(i-1,j,null,"lightgrey"),
+                                vs.changeSelection("lightgrey","restore", {'Сверху':'-l'})
+                            ]);
                         }
                     }
                     if (i+1<m.n) {
@@ -210,11 +235,16 @@
                         if (d>=0) {
                             await Promise.all([
                                 m.setAnimated(i+1,j,null,"violet"),
-                                A.setAnimated(c,d,1,"violet")]);
+                                A.setAnimated(c,d,1,"violet"),
+                                vs.changeSelection("violet","restore", {'Снизу':d})
+                            ]);
                             res1.push([i+1,j]);
                             res2.push([c,d]);
                         } else {
-                            await m.setAnimated(i+1,j,null,"lightgrey");
+                            await Promise.all([
+                                m.setAnimated(i+1,j,null,"lightgrey"),
+                                vs.changeSelection("lightgrey","restore", {'Снизу':'-l'})
+                            ]);
                         }
                     }
                     await pause();

@@ -32,9 +32,10 @@ class Transitions {
         
         const p = new Promise((rs,rj)=>{resolve = rs; });
         elem.addEventListener("transitionend", (q) => {
-            console.log("Transition ended: ",elem);
+//            console.log("Transition ended: ",elem);
             resolve(q);
         },{once:true});
+        //setTimeout(resolve, Transitions.D*1000);
 
         return p;
     }
