@@ -1,0 +1,238 @@
+<!doctype html>
+<html>
+<head>
+    <link href="temml/Temml-Local.css" rel="stylesheet" />
+    <script src="temml/temml.min.js"></script>
+    <script src="https://d3js.org/d3.v7.js"></script>
+    <script src="matrix.js"></script>
+    <script src="transitions.js"></script>
+    <script src="varstable.js"></script>
+<style>
+    #container {
+    }
+
+    table {
+        text-align: center;
+        border-collapse: collapse;
+    }
+    table.varstable td{
+        border: solid 1px black;
+        width: 45px;
+    }
+    table.matrix td{
+        border: solid 1px black;
+        width: 45px;
+        height: 45px;
+    }
+    th {
+        border: solid 1px black;
+        height: 25px;
+    }
+
+    .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+    }
+
+</style>
+</head>
+<body>
+    <header>
+    <button onclick="add()">Тест</button>
+    <button onclick="m.updateAllColors()">Color</button>
+    <button onclick="demoNumbering()">Пронумеровать ячейки</button>
+    <button onclick="demoMatrixA()">Заполнить матрицу А / продолжить</button>
+    </header>
+    <div class="row">
+    <div class="col">
+        <table id="tab1"></table>
+        <br/>
+        <table id="vars1"></table>
+    </div>
+    <div class="col">
+        <table id="tab2"></table>
+    </div>
+    </div>
+    
+    <script>
+        var m=null;
+        document.addEventListener("DOMContentLoaded", async ()=>{
+            Transitions.init(0.1);
+            
+            m = new MatrixTable(5,7,"#tab1");
+            //document.m=m;
+            m.updateAll();
+            for (let i=0;i<m.n;i++) {
+                    for (let j=0;j<m.m;j++) {
+                        if (Math.hypot(i-m.n/2+1,j-m.m/2+1)<2) m.set(i,j,1); else m.set(i,j,0);
+                }
+            }
+
+            
+
+            
+            //const vs = new VariableTable({A:1,B:2,D:8,AA:0},"#vars1");
+            //vs.updateSome({"A":100});
+
+            //vs.updateSome({"A":8,"B":50});
+            //vs.changeSelection("yellow","white",{"A":1,"B":5});
+
+            // for (let i = 0; i < 3; i++) {
+            //     for (let j = 0; j < 3; j++) {
+            //         m.setMath(i,j,`a^${i}_${j}`);
+            //     }
+            // }
+            setTimeout(demoNumbering, 100);
+
+        
+        });
+
+
+
+        class TextLog {
+            constructor(n,m) {
+            }
+        }
+
+        
+        
+        async function add() {
+            const i = Math.floor(Math.random()*(m.n-2))+1;
+            const j = Math.floor(Math.random()*(m.m-2))+1;
+            const val = Math.floor(Math.random()*50);
+            //m.setAnimated(i,j,val,"yellow");
+            //m.selectMulti([[2,3],[2,5]]).setBackColor("red");
+            //await Transitions.waitForCompletion();
+            //m.setAnimated(i,j+1,val,"orange","restore");
+            //m.setAnimated(i,j-1,val,"orange","restore");
+            //await m.setAnimated(i,j,val,"orange","restore");
+            //console.log("Wow!");
+
+            m.selectRange(i-1,i+1,j-1,j+1);
+            m.changeSelection("orange","restore",[5,5,5]);
+
+            //m.setAnimated(i,j,val,"green");
+            //m.updateAll();
+            //m.selectRow(2).setBackColor("orange");
+            //m.set(0,0,50);
+//          m.updateAllColors();
+        }
+
+
+        let num=0;
+        let A;
+        async function demoNumbering() {
+            num=0;
+            Transitions.D=0.1;
+            for (let i=0;i<m.n;i++) {
+                for (let j=0;j<m.m;j++) {
+                    console.log(i,j);
+                    if (m.v[i][j]==1) {
+                        await m.setAnimated(i,j,num,"yellow",null);
+                        num++;
+                    } else {
+                        await m.setAnimated(i,j,-1,"lightgrey",null);
+                    }
+                }
+            }
+            A = new MatrixTable(num,num,"#tab2");
+            A.updateAll();
+        }
+        
+        
+
+        let pausePromise=null;
+        async function pause() {
+            return new Promise((rs,rj)=>{
+                pausePromise=rs;
+            });
+        }
+
+        let statusA="no";
+        async function demoMatrixA() {
+            if (statusA == "working") {pausePromise(); return;}
+            if (statusA == "ready") { A.clear(); }
+            statusA = "working";
+            
+            Transitions.D=0.5;
+            num=0;
+            for (let i=0;i<m.n;i++) {
+                for (let j=0;j<m.m;j++) {
+                    const c = m.v[i][j];
+                    if (c<0) continue;
+                    console.log(i,j);
+                    m.selectMulti([[i,j],[i-1,j],[i+1,j],[i,j-1],[i,j+1]]);
+                    await Promise.all([A.setAnimated(c,c,-4,"red"), m.changeSelection("red")]);
+                    //alert("red");
+                    //await m.setAnimated(i,j,null,"red");
+                    let res1=[[i,j]],  res2=[[c,c]];
+                    if (j>0) {
+                        const l = m.v[i][j-1];
+                        if (l>=0) {
+                            await Promise.all([
+                                m.setAnimated(i,j-1,null,"limegreen"),
+                                A.setAnimated(c,l,1,"limegreen")]
+                            );
+                            res1.push([i,j-1]);
+                            res2.push([c,l]);
+                        } else {
+                            await m.setAnimated(i,j-1,null,"lightgrey");
+                        }
+                    }
+                    if (j+1<m.m) {
+                        const r = m.v[i][j+1];
+                        if (r>=0) {
+                            await Promise.all([
+                                m.setAnimated(i,j+1,null,"orange"),
+                                A.setAnimated(c,r,1,"orange")]);
+                            res1.push([i,j+1]);
+                            res2.push([c,r]);
+                        } else {
+                            await m.setAnimated(i,j+1,null,"lightgrey");
+                        }
+                    }
+
+                    if (i>=1) {
+                        const u = m.v[i-1][j];
+                        if (u>=0) {
+                            await Promise.all([
+                                m.setAnimated(i-1,j,null,"lightblue"),
+                                A.setAnimated(c,u,1,"lightblue")]);
+                            res1.push([i-1,j]);
+                            res2.push([c,u]);
+                        } else {
+                            await m.setAnimated(i-1,j,null,"lightgrey");
+                        }
+                    }
+                    if (i+1<m.n) {
+                        const d = m.v[i+1][j];
+                        if (d>=0) {
+                            await Promise.all([
+                                m.setAnimated(i+1,j,null,"violet"),
+                                A.setAnimated(c,d,1,"violet")]);
+                            res1.push([i+1,j]);
+                            res2.push([c,d]);
+                        } else {
+                            await m.setAnimated(i+1,j,null,"lightgrey");
+                        }
+                    }
+                    await pause();
+                    m.selectMulti(res1);
+                    A.selectMulti(res2);
+                    await Promise.all([
+                        m.changeSelection("yellow"),
+                        A.changeSelection("")]);
+                }
+            }
+            statusA = "ready";
+        }
+
+
+
+
+  
+            //m.selectMulti([[2,3],[2,5]]).setBackColor("yellow");
+    </script>
+</body>
+</html>
