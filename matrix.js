@@ -118,9 +118,9 @@ class MatrixTable {
         if (this.cellToMatrixSync) this.v[i][j]=Number(val);
     }
     
-    wait(elem) {
-        return Transitions.waitForCompletion(elem.node()||this.selection.node());
-    }
+    // wait(elem) {
+    //     return Transitions.waitForCompletion(elem.node()||this.selection.node());
+    // }
     
     async setAnimated(i,j,val,color1, returnColor) {
         const c = this.selectOne(i,j);
@@ -131,24 +131,25 @@ class MatrixTable {
         }
         c.setBackColor(color1);
         //console.log("Waiting ",c.node());
-        await this.wait(c);
+        //await this.wait(c);
+        await Transitions.waitForDelay();
         //console.log(c.node(),"OK");
         if (color2) {
             c.setBackColor(color2);
-            await this.wait(c);
+            await Transitions.waitForDelay();
         }
     }
 
     async changeSelection(color1, returnColor, values) {
         let color2 = (returnColor==="restore") ? this.selection.getBackColors() : returnColor;
         this.selection.setBackColor(color1);
-        await this.wait(this.selection);
+        //await this.wait(this.selection);
+        await Transitions.waitForDelay();
         if (values!=null) this.updateSelection(values);
         if (color2) {
             this.selection.setBackColor((_,i)=>color2[i]);
-            await this.wait(this.selection);
+            await Transitions.waitForDelay();
         }
     }
 
-    
 }

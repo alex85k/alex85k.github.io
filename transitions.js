@@ -14,7 +14,7 @@ class Transitions {
         Transitions.rule2 = document.styleSheets[1].cssRules[
         document.styleSheets[1].insertRule("table.varstable tr { transition-property: background-color; transition: "+Transitions.defaultD+"s;}")
     ];
-        this.D = d;
+        Transitions.D = d;
     }
 
     static resetD() {
@@ -24,6 +24,20 @@ class Transitions {
         this._d=t;
         Transitions.rule.style['transition-duration']=t+'s';
         Transitions.rule2.style['transition-duration']=t+'s';
+    }
+    static promises=new Set();
+    static waitForDelay(d) {
+        let resolve;
+        const p = new Promise((rs,rj)=>{resolve = rs; });
+        this.promises.add(p);
+        setTimeout(()=>{
+            resolve();
+            this.promises.delete(p);
+        }, d||this._d*1000);
+        return p;
+    }
+    static waitForAllDelays() {
+        return Promise.all(this.promises);
     }
 
     static waitForCompletion(elem) {
@@ -36,7 +50,6 @@ class Transitions {
             resolve(q);
         },{once:true});
         //setTimeout(resolve, Transitions.D*1000);
-
         return p;
     }
     

@@ -166,14 +166,13 @@
                     if (c<0) continue;
                     console.log(i,j);
                     m.selectMulti([[i,j],[i-1,j],[i+1,j],[i,j-1],[i,j+1]]);
-                    await Promise.all([
-                        A.setAnimated(c,c,-4,"red"), 
-                        m.changeSelection("red"),
-                        //vs.changeSelection("wheat", null, {'num[i,j]': c})
-                        vs.changeSelection("red", null,{'num[i,j]': c, 'Слева': m.v[i]?.[j-1]||'?',
-                            'Справа':m.v[i]?.[j+1]||'?','Сверху':m.v[i-1]?.[j]||'?',
-                            'Снизу':m.v[i+1]?.[j]||'?'})
-                        ]);
+                    A.setAnimated(c,c,-4,"red"), 
+                    m.changeSelection("red"),
+                    //vs.changeSelection("wheat", null, {'num[i,j]': c})
+                    vs.changeSelection("red", null,{'num[i,j]': c, 'Слева': m.v[i]?.[j-1]||'?',
+                        'Справа':m.v[i]?.[j+1]||'?','Сверху':m.v[i-1]?.[j]||'?',
+                        'Снизу':m.v[i+1]?.[j]||'?'})
+                    await Transitions.waitForAllDelays();
                     //alert("red");
                     //await m.setAnimated(i,j,null,"red");
 
@@ -181,78 +180,69 @@
                     if (j>0) {
                         const l = m.v[i][j-1];
                         if (l>=0) {
-                            await Promise.all([
-                                m.setAnimated(i,j-1,null,"limegreen"),
-                                A.setAnimated(c,l,1,"limegreen")],
-                                vs.changeSelection("limegreen","restore", {'Слева':l})
-                            );
+                            m.setAnimated(i,j-1,null,"limegreen"),
+                            A.setAnimated(c,l,1,"limegreen"),
+                            vs.changeSelection("limegreen","restore", {'Слева':l})
+                            await Transitions.waitForAllDelays();
                             res1.push([i,j-1]);
                             res2.push([c,l]);
                         } else {
-                            await Promise.all([
-                                m.setAnimated(i,j-1,null,"lightgrey"),
-                                vs.changeSelection("lightgrey","restore", {'Слева':'-l'})
-                            ]);
+                            m.setAnimated(i,j-1,null,"lightgrey"),
+                            vs.changeSelection("lightgrey","restore", {'Слева':'-l'})
+                            await Transitions.waitForAllDelays();
                         }
                     }
                     if (j+1<m.m) {
                         const r = m.v[i][j+1];
                         if (r>=0) {
-                            await Promise.all([
-                                m.setAnimated(i,j+1,null,"orange"),
-                                A.setAnimated(c,r,1,"orange"),
-                                vs.changeSelection("orange","restore", {'Справа':r})
-                            ]);
+                            m.setAnimated(i,j+1,null,"orange"),
+                            A.setAnimated(c,r,1,"orange"),
+                            vs.changeSelection("orange","restore", {'Справа':r})
+                            await Transitions.waitForAllDelays();
                             res1.push([i,j+1]);
                             res2.push([c,r]);
                         } else {
-                            await Promise.all([
                                 m.setAnimated(i,j+1,null,"lightgrey"),
                                 vs.changeSelection("lightgrey","restore", {'Справа':'-l'})
-                            ]);
+                                await Transitions.waitForAllDelays();
                         }
                     }
 
                     if (i>=1) {
                         const u = m.v[i-1][j];
                         if (u>=0) {
-                            await Promise.all([
-                                m.setAnimated(i-1,j,null,"lightblue"),
-                                A.setAnimated(c,u,1,"lightblue"),
-                                vs.changeSelection("lightblue","restore", {'Сверху':u})
-                            ]);
+                            m.setAnimated(i-1,j,null,"lightblue"),
+                            A.setAnimated(c,u,1,"lightblue"),
+                            vs.changeSelection("lightblue","restore", {'Сверху':u})
                             res1.push([i-1,j]);
                             res2.push([c,u]);
                         } else {
-                            await Promise.all([
-                                m.setAnimated(i-1,j,null,"lightgrey"),
-                                vs.changeSelection("lightgrey","restore", {'Сверху':'-l'})
-                            ]);
+                            m.setAnimated(i-1,j,null,"lightgrey"),
+                            vs.changeSelection("lightgrey","restore", {'Сверху':'-l'})
                         }
+                        await Transitions.waitForAllDelays();
                     }
                     if (i+1<m.n) {
                         const d = m.v[i+1][j];
                         if (d>=0) {
-                            await Promise.all([
-                                m.setAnimated(i+1,j,null,"violet"),
-                                A.setAnimated(c,d,1,"violet"),
-                                vs.changeSelection("violet","restore", {'Снизу':d})
-                            ]);
+                            m.setAnimated(i+1,j,null,"violet"),
+                            A.setAnimated(c,d,1,"violet"),
+                            vs.changeSelection("violet","restore", {'Снизу':d})
                             res1.push([i+1,j]);
                             res2.push([c,d]);
                         } else {
-                            await Promise.all([
-                                m.setAnimated(i+1,j,null,"lightgrey"),
-                                vs.changeSelection("lightgrey","restore", {'Снизу':'-l'})
-                            ]);
+                            m.setAnimated(i+1,j,null,"lightgrey"),
+                            vs.changeSelection("lightgrey","restore", {'Снизу':'-l'})
                         }
+                        await Transitions.waitForAllDelays();
+                    
                     }
-                    await pause();
+                    //await pause();
                     m.selectMulti(res1);
                     A.selectMulti(res2);
-                    await Promise.all([
-                        m.changeSelection("yellow"),
-                        A.changeSelection("")]);
+                    m.changeSelection("yellow");
+                    A.changeSelection("");
+                    await Transitions.waitForAllDelays();
                 }
             }
             statusA = "ready";

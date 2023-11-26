@@ -24,27 +24,24 @@ class VariableTable {
         .html(q=>`<td>${q}</td><td>${keyValues[q]}</td>`);
     }
 
-    wait(elem) {
-        return Transitions.waitForCompletion(elem.node()||this.selection.node());
-    }
+    // wait(elem) {
+    //     return Transitions.waitForCompletion(elem.node()||this.selection.node());
+    // }
     
     async changeSelection(color1, returnColor, values) {
         this.selection = d3.select(this.table).selectAll('tr')
             .data(Object.keys(values), k=>k);
         //let color2 = (returnColor==="restore") ? this.selection.getBackColor() : returnColor;
-        const changed = this.selection.node().style['background-color']!==color1;
+        //const changed = this.selection.node().style['background-color']!==color1;
         
 
         this.selection.setBackColor(color1);
         if (values) this.updateSome(values);
         
-        if (changed) {
-            console.log("Waiting for", this.selection.node());
-            await this.wait(this.selection);
-            console.log("ready");
-        } else {
-            console.log("same color of", this.selection.node())
-        }
+        await Transitions.waitForDelay();
+        // console.log("Waiting for", this.selection.node());
+        // await this.wait(this.selection);
+        // console.log("ready");
         //if (this.cellToMatrixSync) this.v[i][j]=Number(val);
 //                if (color2) {
 //                  this.selection.setBackColor(color2);
