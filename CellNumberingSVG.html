@@ -50,6 +50,8 @@
     <button onclick="m.updateAllColors()">Color</button>
     <button onclick="demoNumbering()">Пронумеровать ячейки</button>
     <button onclick="demoMatrixA()">Заполнить матрицу А / продолжить</button>
+    <input type="checkbox" onclick="noPause=event.target.checked">без пауз</input>
+    <input type="number" id="delay" value="1"></input>
     </header>
     <svg width="100%" height="100vh">
         <g data-x="10" data-y="10" id="tab1" />
@@ -62,10 +64,12 @@
         var m=null, vs=null, A=null;
         document.addEventListener("DOMContentLoaded", async ()=>{
             Transitions.init(0.1);
+            updateDelay();
             
             m = new SVGMatrix(5,7,"#tab1");
             //document.m=m;
             m.updateAll();
+            
             for (let i=0;i<m.n;i++) {
                     for (let j=0;j<m.m;j++) {
                         if (Math.hypot(i-m.n/2+1,j-m.m/2+1)<2) m.set(i,j,1); else m.set(i,j,0);
@@ -122,7 +126,16 @@
         }
 
 
-        let num=0;
+        let num = 0;
+        let noPause = true;
+        var nextDelay;
+        
+        function updateDelay() {
+            nextDelay = document.getElementById("delay").value/100;
+            Transitions.D = nextDelay;
+        }
+
+        
         async function demoNumbering() {
             num=0;
             Transitions.D=0.01;
@@ -161,7 +174,7 @@
             if (statusA == "ready") { A.clear(); }
             statusA = "working";
             
-            Transitions.D=1;
+            updateDelay();
             num=0;
             for (let i=0;i<m.n;i++) {
                 for (let j=0;j<m.m;j++) {
@@ -179,67 +192,32 @@
                     //await m.setAnimated(i,j,null,"red");
 
                     let res1=[[i,j]],  res2=[[c,c]];
-                    if (j>0) {
-                        const l = m.v[i][j-1];
-                        if (l>=0) {
-                            m.setAnimated(i,j-1,null,"limegreen"),
-                            A.setAnimated(c,l,1,"limegreen"),
-                            vs.changeSelection("limegreen","restore", {'Слева':l})
-                            await Transitions.waitForAllDelays();
-                            res1.push([i,j-1]);
-                            res2.push([c,l]);
-                        } else {
-                            m.setAnimated(i,j-1,null,"lightgrey"),
-                            vs.changeSelection("lightgrey","restore", {'Слева':'-l'})
-                            await Transitions.waitForAllDelays();
-                        }
-                    }
-                    if (j+1<m.m) {
-                        const r = m.v[i][j+1];
-                        if (r>=0) {
-                            m.setAnimated(i,j+1,null,"orange"),
-                            A.setAnimated(c,r,1,"orange"),
-                            vs.changeSelection("orange","restore", {'Справа':r})
-                            await Transitions.waitForAllDelays();
-                            res1.push([i,j+1]);
-                            res2.push([c,r]);
-                        } else {
-                                m.setAnimated(i,j+1,null,"lightgrey"),
-                                vs.changeSelection("lightgrey","restore", {'Справа':'-l'})
-                                await Transitions.waitForAllDelays();
-                        }
-                    }
 
-                    if (i>=1) {
-                        const u = m.v[i-1][j];
-                        if (u>=0) {
-                            m.setAnimated(i-1,j,null,"lightblue"),
-                            A.setAnimated(c,u,1,"lightblue"),
-                            vs.changeSelection("lightblue","restore", {'Сверху':u})
-                            res1.push([i-1,j]);
-                            res2.push([c,u]);
+
+                    let others = [
+                        {i:i, j:j-1, c:"limegreen", t:"Слева" },
+                        {i:i, j:j+1, c:"orange", t:"Справа" },
+                        {i:i-1, j:j, c:"lightblue", t:"Сверху" },
+                        {i:i+1, j:j, c:"violet", t:"Снизу" },
+                    ];
+                    for (let b of others) {
+                        if (b.i<0 || b.i>=this.n || b.j<0 || b.j>=this.m) continue;
+                        const idx = m.v[b.i][b.j];
+                        const o={}; o[b.t]=idx;
+                        if (idx>=0) {
+                            m.setAnimated(b.i,b.j,null,b.c);
+                            A.setAnimated(c,idx,1,b.c);
+                            vs.changeSelection(b.c,null, o)
+                            await Transitions.waitForAllDelays();
+                            res1.push([b.i,b.j]);
+                            res2.push([c,idx]);
                         } else {
-                            m.setAnimated(i-1,j,null,"lightgrey"),
-                            vs.changeSelection("lightgrey","restore", {'Сверху':'-l'})
+                            m.setAnimated(b.i,b.j,null,"lightgrey"),
+                            vs.changeSelection("lightgrey","restore", o)
+                            await Transitions.waitForAllDelays();
                         }
-                        await Transitions.waitForAllDelays();
                     }
-                    if (i+1<m.n) {
-                        const d = m.v[i+1][j];
-                        if (d>=0) {
-                            m.setAnimated(i+1,j,null,"violet"),
-                            A.setAnimated(c,d,1,"violet"),
-                            vs.changeSelection("violet","restore", {'Снизу':d})
-                            res1.push([i+1,j]);
-                            res2.push([c,d]);
-                        } else {
-                            m.setAnimated(i+1,j,null,"lightgrey"),
-                            vs.changeSelection("lightgrey","restore", {'Снизу':'-l'})
-                        }
-                        await Transitions.waitForAllDelays();
-                    
-                    }
-                    //await pause();
+                    if (!noPause) await pause();
                     m.selectMulti(res1);
                     A.selectMulti(res2);
                     m.changeSelection("yellow");
@@ -249,6 +227,7 @@
                         'Снизу':m.v[i+1]?.[j]||'?'})
                     
                     await Transitions.waitForAllDelays();
+                    updateDelay();
                 }
             }
             statusA = "ready";

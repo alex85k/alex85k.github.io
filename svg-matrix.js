@@ -49,7 +49,7 @@ class SVGMatrix {
         const cells = new Array(this.n);
         const texts = new Array(this.n);
 
-        d3.select(this.table).selectAll('g')
+        d3.select(this.table).selectAll('svg>g')
             .data(this.v)
             .join(
                 enter=>enter.append('g'),
@@ -60,7 +60,7 @@ class SVGMatrix {
             .selectAll('g')
             .data(d=>d)
             .join('g').classed("cell",true)
-            .html(function (d,j) {//`<rect />`);
+            .html(function (d,j) {
                 const i=this.parentNode.getAttribute('data-row');
                 const x1=x+j*w;
                 const y1=y+i*w;
@@ -93,26 +93,26 @@ class SVGMatrix {
     updateAllColors() {
         const color = d3.scaleSequential(d3.interpolateTurbo);
 
-        const rows = d3.select(this.table).selectAll('tr');
+        const rows = d3.select(this.table).selectAll('svg>g');
         const max = d3.max(d3.max(m.v))+2;
         console.log(max)
         return rows.data(this.v)
             .join(
-                enter=> enter.append('tr'),
+                enter=> enter.append('g'),
                 update=>update,
                 exit=>exit.remove()
-            ).selectAll('td').data(d=>d)
-            .join('td').style("background-color",
+            ).selectAll('g').data(d=>d).join('g')
+            .select('rect').attr("fill",
                  (val,idx,arr)=>{
-                     //console.log(val,idx)
+                     console.log(val,idx)
                      return color((val+2)/max);//`hsl(${val/max*360}deg 75% 50%)`;
                  }
             );
     }
 
     clear() {
-        const data = new Matrix(this.n,this.m);
-        this.v = data;
+        //const data = new Matrix(this.n,this.m);
+        //this.v = data;
         this.updateAll();
     }
 
