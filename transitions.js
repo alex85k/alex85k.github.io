@@ -8,12 +8,17 @@ class Transitions {
     
     static init(d) {
         Transitions.rule = document.styleSheets[1].cssRules[
-    document.styleSheets[1].insertRule("table.matrix td { transition-property: background-color; transition: "+Transitions.defaultD+"s;}")
-    ];
+            document.styleSheets[1].insertRule("table.matrix td { transition-property: background-color; transition: "+Transitions.defaultD+"s;}")
+        ];
+
 
         Transitions.rule2 = document.styleSheets[1].cssRules[
-        document.styleSheets[1].insertRule("table.varstable tr { transition-property: background-color; transition: "+Transitions.defaultD+"s;}")
-    ];
+            document.styleSheets[1].insertRule("table.varstable tr { transition-property: background-color; transition: "+Transitions.defaultD+"s;}")
+        ];
+
+        Transitions.rule3 = document.styleSheets[1].cssRules[
+            document.styleSheets[1].insertRule(".matrix rect { transition-property: fill; transition: "+Transitions.defaultD+"s;}")
+        ];
         Transitions.D = d;
     }
 
@@ -24,6 +29,7 @@ class Transitions {
         this._d=t;
         Transitions.rule.style['transition-duration']=t+'s';
         Transitions.rule2.style['transition-duration']=t+'s';
+        Transitions.rule3.style['transition-duration']=t+'s';
     }
     static promises=new Set();
     static waitForDelay(d) {

@@ -1,3 +1,10 @@
+d3.selection.prototype.setBackColor = function(v) {
+    return this.style("background-color", v);
+}
+d3.selection.prototype.getBackColors = function() {
+    return this.nodes().map(q=>q.style['background-color']);
+}
+
 class VariableTable {
     constructor(varsObject, tableSelector) {
         this.table = document.querySelector(tableSelector);
