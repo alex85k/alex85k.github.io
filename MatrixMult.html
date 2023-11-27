@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+    <title>Matrix multiplication</title>
+    <link href="temml/Temml-Local.css" rel="stylesheet" />
+    <script src="temml/temml.min.js"></script>
+    <script src="https://d3js.org/d3.v7.js"></script>
+    <script src="svg-matrix.js"></script>
+    <script src="formula.js"></script>
+    <script src="transitions.js"></script>
+    <script src="varstable.js"></script>
+<style>
+  
+    svg text{
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+    table {
+        text-align: center;
+        border-collapse: collapse;
+    }
+    table.varstable td{
+        border: solid 1px black;
+        width: 45px;
+    }
+    table.matrix td{
+        border: solid 1px black;
+        width: 45px;
+        height: 45px;
+    }
+    th {
+        border: solid 1px black;
+        height: 25px;
+    }
+
+    .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+    }
+
+    g.cell rect {
+        fill: white;
+        stroke: black;
+    }
+
+    g.cell text {
+        font-size: 16pt;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .formula {
+        font-size: 16pt;
+    }
+    button {
+        width: 100px;
+    }
+
+
+</style>
+</head>
+<body>
+    <header>
+    <button onclick="demoABC()" size="100"> GO </button>
+    <input type="checkbox" id="nopause">no pause</input>
+    <input type="number" id="delay" value="100" step="10" size="5"></input>
+    
+</header>
+    <svg width="100%" height="100vh">
+        <g data-x="10" data-y="10" id="A" />
+        <g data-x="270" data-y="10" id="B" />
+        <g data-x="450" data-y="10" id="C" />
+        <foreignObject x="610" y="150" width="160" height="160">
+            <table id="vars1"></table>
+        </foreignObject>
+        <foreignObject x="610" y="10" width="250" height="160">
+            <span id="formula1"></span>
+        </foreignObject>
+        <foreignObject x="610" y="100" width="500" height="160">
+            <span id="formula2"></span>
+        </foreignObject>
+        
+    </svg>
+    <script>
+        var m=null, vs=null, A=null, B=null, C=null, F=null;
+        document.addEventListener("DOMContentLoaded", async ()=>{
+            Transitions.init(0.1);
+            updateDelay();
+            
+            A = new SVGMatrix(4,5,"#A");
+            B = new SVGMatrix(5,3,"#B");
+            C = new SVGMatrix(4,3,"#C");
+            //document.m=m;
+            A.v.randomize(0,3);
+            B.v.randomize(0,3);
+            //C.v.randomize(0,0);
+            A.updateAll();
+            B.updateAll();
+            C.updateAll();
+            
+            vs = new VariableTable({i:'',j:'',k:'','a[i,k]':'','b[k,j]':'','c[i,j]':''},"#vars1");
+
+            new Formula("c_{i j}=\\large\\sum\\limits_{k=1}^n a_{i k} b_{k j}", "#formula1");
+            F = new Formula("c_{i j}=", "#formula2");
+        });
+
+        let num = 0;
+        var nextDelay;
+
+        function noPause() {
+            return document.getElementById("nopause").checked;
+        }
+        
+        function updateDelay() {
+            nextDelay = document.getElementById("delay").value/100;
+            Transitions.D = nextDelay;
+        }
+        
+        let pausePromise=()=>{};
+        async function pause() {
+            return new Promise((rs,rj)=>{
+                pausePromise=rs;
+            });
+        }
+            
+        let statusA="no";
+        async function demoABC() {
+            if (statusA == "working") {pausePromise(); return;}
+            if (statusA == "ready") { A.clear(); }
+            statusA = "working";
+            
+            updateDelay();
+            num=0;
+            Transitions.D=1;
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+            for (let i=0;i<A.n;i++) {
+                for (let j=0;j<B.m;j++) {
+                    C.v[i][j]=0;
+                    F.set(`c_{${i+1}${j+1}}=`);
+                    for (let k=0;k<A.m;k++) {
+                        C.v[i][j] += A.v[i][k]*B.v[k][j];
+                        const c=color(k);
+                        A.setAnimated(i,k,null,c);
+                        B.setAnimated(k,j,null,c);
+                        C.setAnimated(i,j,C.v[i][j],c);
+                        if (k==0) F.append(`${A.v[i][k]}\\cdot${B.v[k][j]}`);
+                        else F.append(`+${A.v[i][k]}\\cdot${B.v[k][j]}`);
+                        vs.updateSome({i, j, k, 'a[i,k]':A.v[i][k], 'b[k,j]':B.v[k][j],'c[i,j]':C.v[i][j]});
+                        await Transitions.waitForAllDelays();
+                        updateDelay();
+                    }
+                    
+                    F.append(`=${C.v[i][j]}`);
+                    if (!noPause()) await pause();
+                    
+                    A.selectRange(i,i,0,A.m);
+                    A.changeSelection("white");
+                    B.selectRange(0,A.n,j,j);
+                    B.changeSelection("white");
+                    C.setAnimated(i,j,C.v[i][j],"white");
+                    await Transitions.waitForAllDelays();
+                    
+                }
+            }
+
+            statusA = "ready";
+        }
+
+
+
+
+  
+            //m.selectMulti([[2,3],[2,5]]).setBackColor("yellow");
+    </script>
+</body>
+</html>

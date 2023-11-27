@@ -18,6 +18,15 @@ class Matrix extends Array {
         this.m=m;
         this.n=n;
     }
+
+    randomize(a,b) {
+        for (let i=0;i<this.n;i++) {
+            this[i]=new Array(this.m);
+            for (let j=0;j<this.m;j++) {
+                this[i][j]=Math.round(a+Math.random()*(b-a));;
+            }
+        }
+    }
 }
 
 class SVGMatrix {
@@ -120,6 +129,9 @@ class SVGMatrix {
         return this.cells[i]?.[j];
     }
     text(i,j) {
+        if (i>=this.n || j>=this.m) {
+            alert("Обращение мимо массива: "+i+","+j);
+        }
         return this.texts[i]?.[j];
     }
 
@@ -170,8 +182,6 @@ class SVGMatrix {
             if (this.cellToMatrixSync) this.v[i][j]=Number(val);
         }
         c.setFillColor(color1);
-        //console.log("Waiting ",c.node());
-        //await this.wait(c);
         await Transitions.waitForDelay();
         //console.log(c.node(),"OK");
         if (color2) {
