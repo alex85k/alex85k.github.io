@@ -66,7 +66,7 @@
     <input type="number" id="delay" value="80" step="10" size="5"></input>
     
 </header>
-    <svg width="100%" height="100vh">
+    <svg width="95%" height="100vh">
         <g data-x="10" data-y="10" id="A" />
         <g data-x="270" data-y="10" id="B" />
         <g data-x="450" data-y="10" id="C" />
@@ -102,6 +102,8 @@
 
             new Formula("c_{i j}=\\large\\sum\\limits_{k=1}^n a_{i k} b_{k j}", "#formula1");
             F = new Formula("c_{i j}=", "#formula2");
+
+            demoABC();
         });
 
         let num = 0;
